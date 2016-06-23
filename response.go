@@ -1,4 +1,4 @@
-package wxofficial
+package wechat
 
 import (
 	"encoding/xml"

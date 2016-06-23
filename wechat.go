@@ -1,9 +1,8 @@
-package wxofficial
+package wechat
 
 import (
 	"crypto/sha1"
 	"encoding/hex"
-	"encoding/xml"
 	"github.com/gomydodo/wxencrypter"
 	"io"
 	"io/ioutil"
@@ -17,17 +16,18 @@ type Wechat struct {
 	AppID          string
 	EncodingAesKey string
 	securityMode   bool
-	encrypter      wxencrypter.Encrypter
+	encrypter      *wxencrypter.Encrypter
 	lastError      error
+	handles        map[string][]MessageHandler
 }
 
 func New(token, appID, encodingAesKey string, securityMode bool) (w *Wechat, err error) {
 
-	var encrypter wxencrypter.Encrypter
+	var encrypter *wxencrypter.Encrypter
 
 	if securityMode {
 
-		encrypter, err = wxencrypter.NewEncrypter(token, encodingAesKey, appId)
+		encrypter, err = wxencrypter.NewEncrypter(token, encodingAesKey, appID)
 
 		if err != nil {
 			return
@@ -64,41 +64,44 @@ func (w *Wechat) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	nonce := r.URL.Query().Get("nonce")
 	signature := r.URL.Query().Get("signature")
 
-	if !w.CheckSignature(imestamp, nonce, signature) {
+	if !w.CheckSignature(timestamp, nonce, signature) {
 		rw.WriteHeader(400)
 		return
 	}
 
-	if r.Method == http.MethodGet {
+	if r.Method == "GET" {
 
 		echostr := r.URL.Query().Get("echostr")
 		rw.Write([]byte(echostr))
 		return
 
-	} else if r.Method == http.MethodPost {
+	} else if r.Method == "POST" {
 
-		data, err := ioutil.ReadAll(r.Body)
-
+		data, err := w.body(r)
 		if err != nil {
-			rw.WriteHeader(500)
+			rw.WriteHeader(400)
 			return
 		}
 
-		if w.securityMode {
-			msgSignature := r.URL.Query().Get("msg_encrypt")
-			data, err = w.Decrypt(msgSignature, timestamp, nonce, data)
-			if err != nil {
-				rw.WriteHeader(500)
-				return
-			}
-		}
+		c := newContext(data)
+	}
 
-		rm, err := w.Unmarshal(data)
+	return
+}
+
+func (w *Wechat) body(r *http.Request) (data []byte, err error) {
+	data, err = ioutil.ReadAll(r.Body)
+
+	if err != nil {
+		return
+	}
+
+	if w.securityMode {
+		msgSignature := r.URL.Query().Get("msg_encrypt")
+		data, err = w.Decrypt(msgSignature, timestamp, nonce, data)
 		if err != nil {
-			rw.WriteHeader(500)
 			return
 		}
-
 	}
 
 	return
@@ -110,9 +113,4 @@ func (w *Wechat) Decrypt(msgSignature, timestamp, nonce string, data []byte) (d 
 
 func (w *Wechat) Encrypt(d []byte) (b []byte, err error) {
 	return w.encrypter.Encrypt(d)
-}
-
-func (w *Wechat) Unmarshal(d []byte) (rm RequestMessage, err error) {
-	err = xml.Unmarshal(d, &rm)
-	return
 }
