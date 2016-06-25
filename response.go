@@ -140,20 +140,25 @@ func NewMusicResponseMessage(to, from string, music Music) MusicResponseMessage 
 	}
 }
 
-type ArticleItem struct {
-	XMLName     xml.Name `xml:"item"`
+type Article struct {
 	Title       CDATAString
 	Description CDATAString
 	PicUrl      CDATAString
 	Url         CDATAString
 }
 
+type ArticleItem struct {
+	Item Article `xml:"item"`
+}
+
 func NewArticleItem(title, description, picUrl, url string) ArticleItem {
 	return ArticleItem{
-		Title:       CDATAString{CDATA: title},
-		Description: CDATAString{CDATA: description},
-		PicUrl:      CDATAString{CDATA: picUrl},
-		Url:         CDATAString{CDATA: url},
+		Item: Article{
+			Title:       CDATAString{CDATA: title},
+			Description: CDATAString{CDATA: description},
+			PicUrl:      CDATAString{CDATA: picUrl},
+			Url:         CDATAString{CDATA: url},
+		},
 	}
 }
 

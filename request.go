@@ -26,7 +26,8 @@ const (
 type MsgType int
 
 const (
-	TextType MsgType = iota
+	UnknownType MsgType = iota
+	TextType
 	ImageType
 	VioceType
 	VideoType
@@ -126,7 +127,7 @@ func (dft *defaultRequestMessage) MsgType() MsgType {
 			return MenuViewEventType
 		}
 	}
-	return TextType
+	return UnknownType
 }
 
 func (dft *defaultRequestMessage) Content() string {

@@ -18,7 +18,7 @@ type Wechat struct {
 	securityMode   bool
 	encrypter      *wxencrypter.Encrypter
 	lastError      error
-	handles        map[string][]MessageHandler
+	handle         MessageHandler
 }
 
 func New(token, appID, encodingAesKey string, securityMode bool) (w *Wechat, err error) {
@@ -45,7 +45,11 @@ func New(token, appID, encodingAesKey string, securityMode bool) (w *Wechat, err
 	return
 }
 
-func (w *Wechat) CheckSignature(timestamp, nonce, signature string) bool {
+func (w *Wechat) Use(h MessageHandler) {
+	w.handle = h
+}
+
+func (w *Wechat) Signature(timestamp, nonce string) string {
 	arr := []string{w.Token, timestamp, nonce}
 	sort.Strings(arr)
 
@@ -54,8 +58,11 @@ func (w *Wechat) CheckSignature(timestamp, nonce, signature string) bool {
 	h := sha1.New()
 	io.WriteString(h, joinStr)
 	b := h.Sum(nil)
-	_signed := hex.EncodeToString(b)
+	return hex.EncodeToString(b)
+}
 
+func (w *Wechat) checkSignature(timestamp, nonce, signature string) bool {
+	_signed := w.Signature(timestamp, nonce)
 	return _signed == signature
 }
 
@@ -63,8 +70,7 @@ func (w *Wechat) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	timestamp := r.URL.Query().Get("timestamp")
 	nonce := r.URL.Query().Get("nonce")
 	signature := r.URL.Query().Get("signature")
-
-	if !w.CheckSignature(timestamp, nonce, signature) {
+	if !w.checkSignature(timestamp, nonce, signature) {
 		rw.WriteHeader(400)
 		return
 	}
@@ -76,14 +82,18 @@ func (w *Wechat) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		return
 
 	} else if r.Method == "POST" {
+		c, err := newContext(rw, r, w)
 
-		data, err := w.body(r)
 		if err != nil {
-			rw.WriteHeader(400)
+			rw.WriteHeader(501)
 			return
 		}
 
-		c := newContext(data)
+		err = w.handle(c)
+		if err != nil {
+			rw.WriteHeader(502)
+			return
+		}
 	}
 
 	return
@@ -97,7 +107,11 @@ func (w *Wechat) body(r *http.Request) (data []byte, err error) {
 	}
 
 	if w.securityMode {
-		msgSignature := r.URL.Query().Get("msg_encrypt")
+
+		timestamp := r.URL.Query().Get("timestamp")
+		nonce := r.URL.Query().Get("nonce")
+
+		msgSignature := r.URL.Query().Get("msg_signature")
 		data, err = w.Decrypt(msgSignature, timestamp, nonce, data)
 		if err != nil {
 			return
