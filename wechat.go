@@ -6,6 +6,7 @@ import (
 	"github.com/gomydodo/wxencrypter"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"sort"
 	"strings"
@@ -86,11 +87,13 @@ func (w *Wechat) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 
 		if err != nil {
 			rw.WriteHeader(501)
+			log.Println("wechat newContext error: ", err)
 			return
 		}
 
 		err = w.handle(c)
 		if err != nil {
+			log.Println("wechat handle error: ", err)
 			rw.WriteHeader(502)
 			return
 		}
