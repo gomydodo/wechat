@@ -3,51 +3,80 @@ package wechat
 import (
 	"crypto/sha1"
 	"encoding/hex"
-	"github.com/gomydodo/wxencrypter"
 	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"sort"
 	"strings"
+
+	"github.com/gomydodo/wxencrypter"
 )
 
 type Wechat struct {
 	Token          string
 	AppID          string
 	EncodingAesKey string
-	securityMode   bool
-	encrypter      *wxencrypter.Encrypter
-	lastError      error
-	handle         MessageHandler
+	Secret         string
+
+	securityMode bool
+	encrypter    *wxencrypter.Encrypter
+	router       *Router
+
+	defaultHandler Handler
+
+	lastError error
 }
 
-func New(token, appID, encodingAesKey string, securityMode bool) (w *Wechat, err error) {
+type ErrorHandler func(c Context, err error) error
 
-	var encrypter *wxencrypter.Encrypter
+func New(token, appID, encodingAesKey, secret string) (w *Wechat, err error) {
 
-	if securityMode {
+	w = &Wechat{
+		Token:  token,
+		AppID:  appID,
+		Secret: secret,
+		router: NewRouter(),
+	}
 
-		encrypter, err = wxencrypter.NewEncrypter(token, encodingAesKey, appID)
-
+	if encodingAesKey != "" {
+		err = w.SetEncodingAesKey(encodingAesKey)
 		if err != nil {
 			return
 		}
-
 	}
 
-	w = &Wechat{
-		Token:          token,
-		AppID:          appID,
-		EncodingAesKey: encodingAesKey,
-		securityMode:   securityMode,
-		encrypter:      encrypter,
-	}
 	return
 }
 
-func (w *Wechat) Use(h MessageHandler) {
-	w.handle = h
+func (w *Wechat) SetEncodingAesKey(encodingAesKey string) (err error) {
+	var encrypter *wxencrypter.Encrypter
+
+	encrypter, err = wxencrypter.NewEncrypter(w.Token, encodingAesKey, w.AppID)
+
+	if err != nil {
+		return
+	}
+
+	w.EncodingAesKey = encodingAesKey
+	w.securityMode = true
+	w.encrypter = encrypter
+
+	return
+}
+
+func (w *Wechat) SetDefaultHandler(h Handler) {
+	w.defaultHandler = h
+}
+
+func (w *Wechat) DefaultHandler() Handler {
+	if w.defaultHandler != nil {
+		return w.defaultHandler
+	}
+
+	return func(c Context) error {
+		return nil
+	}
 }
 
 func (w *Wechat) Signature(timestamp, nonce string) string {
@@ -91,7 +120,14 @@ func (w *Wechat) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		err = w.handle(c)
+		w.router.Find(c)
+
+		if h := c.Handler(); h != nil {
+			err = h(c)
+		} else {
+			err = w.DefaultHandler()(c)
+		}
+
 		if err != nil {
 			log.Println("wechat handle error: ", err)
 			rw.WriteHeader(502)
@@ -130,4 +166,64 @@ func (w *Wechat) Decrypt(msgSignature, timestamp, nonce string, data []byte) (d 
 
 func (w *Wechat) Encrypt(d []byte) (b []byte, err error) {
 	return w.encrypter.Encrypt(d)
+}
+
+func (w *Wechat) add(msgType MsgType, key string, h Handler) {
+	w.router.Add(msgType, key, Route{
+		MsgType: TextType,
+		Key:     key,
+		Handler: h,
+	})
+}
+
+func (w *Wechat) Text(h Handler) {
+	w.add(TextType, "", h)
+}
+
+func (w *Wechat) Image(h Handler) {
+	w.add(ImageType, "", h)
+}
+
+func (w *Wechat) Voice(h Handler) {
+	w.add(VoiceType, "", h)
+}
+
+func (w *Wechat) ShortVideo(h Handler) {
+	w.add(ShortVideoType, "", h)
+}
+
+func (w *Wechat) Location(h Handler) {
+	w.add(LocationType, "", h)
+}
+
+func (w *Wechat) Link(h Handler) {
+	w.add(LinkType, "", h)
+}
+
+func (w *Wechat) SubscribeEvent(h Handler) {
+	w.add(SubscribeEventType, "", h)
+}
+
+func (w *Wechat) UnsubscribeEvent(h Handler) {
+	w.add(UnsubscribeEventType, "", h)
+}
+
+func (w *Wechat) ScanSubscribeEvent(h Handler) {
+	w.add(ScanSubscribeEventType, "", h)
+}
+
+func (w *Wechat) ScanEvent(h Handler) {
+	w.add(ScanEventType, "", h)
+}
+
+func (w *Wechat) LocationEvent(h Handler) {
+	w.add(LocationEventType, "", h)
+}
+
+func (w *Wechat) MenuViewEvent(h Handler) {
+	w.add(MenuViewEventType, "", h)
+}
+
+func (w *Wechat) MenuClickEventh(h Handler) {
+	w.add(MenuClickEventType, "", h)
 }

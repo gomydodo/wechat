@@ -2,8 +2,84 @@ package wechat
 
 import (
 	"encoding/xml"
+	"net/http"
 	"time"
 )
+
+type defaultResponse struct {
+	c Context
+	w http.ResponseWriter
+}
+
+func (dr defaultResponse) Response(data interface{}) (err error) {
+	b, err := xml.Marshal(data)
+	if err != nil {
+		return
+	}
+
+	if dr.c.Wechat().securityMode {
+		b, err = dr.c.Wechat().Encrypt(b)
+		if err != nil {
+			return
+		}
+	}
+
+	_, err = dr.w.Write(b)
+	return
+}
+
+func (dr defaultResponse) Text(content string) error {
+	return dr.Response(NewTextResponseMessage(
+		dr.c.Request().FromUserName(),
+		dr.c.Request().ToUserName(),
+		content,
+	))
+}
+
+func (dr defaultResponse) Image(mediaId string) error {
+	return dr.Response(NewImageResponseMessage(
+		dr.c.Request().FromUserName(),
+		dr.c.Request().ToUserName(),
+		mediaId,
+	))
+}
+
+func (dr defaultResponse) Voice(mediaId string) error {
+	return dr.Response(NewVoiceResponseMessage(
+		dr.c.Request().FromUserName(),
+		dr.c.Request().ToUserName(),
+		mediaId,
+	))
+}
+
+func (dr defaultResponse) Video(video Video) error {
+	return dr.Response(NewVideoResponseMessage(
+		dr.c.Request().FromUserName(),
+		dr.c.Request().ToUserName(),
+		video,
+	))
+}
+
+func (dr defaultResponse) Music(music Music) error {
+	return dr.Response(NewMusicResponseMessage(
+		dr.c.Request().FromUserName(),
+		dr.c.Request().ToUserName(),
+		music,
+	))
+}
+
+func (dr defaultResponse) Article(articles ...ArticleItem) (err error) {
+	article, err := NewArticleResponseMessage(
+		dr.c.Request().FromUserName(),
+		dr.c.Request().ToUserName(),
+		articles...,
+	)
+	if err != nil {
+		return
+	}
+
+	return dr.Response(article)
+}
 
 type CDATAString struct {
 	CDATA string `xml:",cdata"`

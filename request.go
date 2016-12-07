@@ -29,7 +29,7 @@ const (
 	UnknownType MsgType = iota
 	TextType
 	ImageType
-	VioceType
+	VoiceType
 	VideoType
 	ShortVideoType
 	LocationType
@@ -99,7 +99,7 @@ func (dft *defaultRequestMessage) MsgType() MsgType {
 	case imageValue:
 		return ImageType
 	case voiceValue:
-		return VioceType
+		return VoiceType
 	case videoValue:
 		return VideoType
 	case shortVideoValue:
@@ -114,9 +114,8 @@ func (dft *defaultRequestMessage) MsgType() MsgType {
 		} else if evt == subscribeEventValue {
 			if strings.HasPrefix(dft.EventKey(), "qrscene_") {
 				return ScanSubscribeEventType
-			} else {
-				return SubscribeEventType
 			}
+			return SubscribeEventType
 		} else if evt == scanEventValue {
 			return ScanEventType
 		} else if evt == locationEventValue {

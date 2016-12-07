@@ -2,14 +2,16 @@ package wechat
 
 import (
 	"encoding/xml"
-	"github.com/gomydodo/wxencrypter"
 	"log"
 	"testing"
+
+	"github.com/gomydodo/wxencrypter"
 )
 
 const (
 	token          = "pamtest"
 	appID          = "wxb11529c136998cb6"
+	secret         = "xxxx"
 	encodingAesKey = "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFG"
 )
 
@@ -17,7 +19,7 @@ var w *Wechat
 
 func init() {
 	var err error
-	w, err = New(token, appID, encodingAesKey, true)
+	w, err = New(token, appID, encodingAesKey, secret)
 	if err != nil {
 		log.Fatal("new wechat error :", err)
 	}
@@ -36,7 +38,7 @@ func TestEncrypt(t *testing.T) {
 		t.Fatal("parse xml error :", err)
 	}
 
-	b, err = w.Decrypt(e.MsgSignature, e.TimeStamp, e.Nonce, b)
+	_, err = w.Decrypt(e.MsgSignature, e.TimeStamp, e.Nonce, b)
 	if err != nil {
 		t.Fatal("decrypt data error: ", err)
 	}
