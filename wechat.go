@@ -39,17 +39,19 @@ func New(token, appID, encodingAesKey, secret string) (w *Wechat, err error) {
 		router: NewRouter(),
 	}
 
-	if encodingAesKey != "" {
-		err = w.SetEncodingAesKey(encodingAesKey)
-		if err != nil {
-			return
-		}
+	err = w.SetEncodingAesKey(encodingAesKey)
+	if err != nil {
+		return
 	}
 
 	return
 }
 
 func (w *Wechat) SetEncodingAesKey(encodingAesKey string) (err error) {
+	if encodingAesKey == "" {
+		return
+	}
+
 	var encrypter *wxencrypter.Encrypter
 
 	encrypter, err = wxencrypter.NewEncrypter(w.Token, encodingAesKey, w.AppID)
