@@ -65,6 +65,10 @@ func (r *Router) Find(c Context) {
 	msgType := c.Request().MsgType()
 	key := ""
 
-	h := r.Get(msgType, key)
-	c.SetHandler(h)
+	if h := r.Get(msgType, key); h != nil {
+		c.SetHandler(h)
+	} else {
+		c.SetHandler(c.Wechat().DefaultHandler())
+	}
+
 }
