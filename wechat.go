@@ -13,20 +13,28 @@ import (
 	"github.com/gomydodo/wxencrypter"
 )
 
-type Wechat struct {
-	Token          string
-	AppID          string
-	EncodingAesKey string
-	Secret         string
+type (
+	Wechat struct {
+		Token          string
+		AppID          string
+		EncodingAesKey string
+		Secret         string
 
-	securityMode bool
-	encrypter    *wxencrypter.Encrypter
-	router       *Router
+		securityMode bool
+		encrypter    *wxencrypter.Encrypter
+		router       *Router
 
-	defaultHandler Handler
+		defaultHandler Handler
 
-	lastError error
-}
+		middleware []Middleware
+
+		lastError error
+	}
+
+	Middleware func(Handler) Handler
+
+	Handler func(Context) error
+)
 
 type ErrorHandler func(c Context, err error) error
 
@@ -53,7 +61,6 @@ func (w *Wechat) SetEncodingAesKey(encodingAesKey string) (err error) {
 	}
 
 	var encrypter *wxencrypter.Encrypter
-
 	encrypter, err = wxencrypter.NewEncrypter(w.Token, encodingAesKey, w.AppID)
 
 	if err != nil {
@@ -77,7 +84,7 @@ func (w *Wechat) DefaultHandler() Handler {
 	}
 
 	return func(c Context) error {
-		return nil
+		return c.Response().String("success")
 	}
 }
 
@@ -124,7 +131,13 @@ func (w *Wechat) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 
 		w.router.Find(c)
 
-		if h := c.Handler(); h != nil {
+		h := c.Handler()
+
+		for i := len(w.middleware) - 1; i >= 0; i-- {
+			h = w.middleware[i](h)
+		}
+
+		if h != nil {
 			err = h(c)
 		} else {
 			err = w.DefaultHandler()(c)
@@ -168,6 +181,10 @@ func (w *Wechat) Decrypt(msgSignature, timestamp, nonce string, data []byte) (d 
 
 func (w *Wechat) Encrypt(d []byte) (b []byte, err error) {
 	return w.encrypter.Encrypt(d)
+}
+
+func (w *Wechat) Use(m ...Middleware) {
+	w.middleware = append(w.middleware, m...)
 }
 
 func (w *Wechat) add(msgType MsgType, key string, h Handler) {
@@ -226,6 +243,34 @@ func (w *Wechat) MenuViewEvent(h Handler) {
 	w.add(MenuViewEventType, "", h)
 }
 
-func (w *Wechat) MenuClickEventh(h Handler) {
+func (w *Wechat) MenuClickEvent(h Handler) {
 	w.add(MenuClickEventType, "", h)
+}
+
+func (w *Wechat) ScancodePushEvent(h Handler) {
+	w.add(ScancodePushEventType, "", h)
+}
+
+func (w *Wechat) ScancodeWaitmsgEvent(h Handler) {
+	w.add(ScancodeWaitmsgEventType, "", h)
+}
+
+func (w *Wechat) PicSysphotoEvent(h Handler) {
+	w.add(PicSysphotoEventType, "", h)
+}
+
+func (w *Wechat) PicPhotoOrAlbumEvent(h Handler) {
+	w.add(PicPhotoOrAlbumEventType, "", h)
+}
+
+func (w *Wechat) PicWeixinEvent(h Handler) {
+	w.add(PicWeixinEventType, "", h)
+}
+
+func (w *Wechat) LocationSelectEven(h Handler) {
+	w.add(LocationSelectEvenType, "", h)
+}
+
+func (w *Wechat) TemplateSendJobFinishEvent(h Handler) {
+	w.add(TemplateSendJobFinishEventType, "", h)
 }

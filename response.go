@@ -11,6 +11,16 @@ type defaultResponse struct {
 	w http.ResponseWriter
 }
 
+func (dr defaultResponse) String(s string) (err error) {
+	err = dr.Bytes([]byte(s))
+	return
+}
+
+func (dr defaultResponse) Bytes(b []byte) (err error) {
+	_, err = dr.w.Write(b)
+	return
+}
+
 func (dr defaultResponse) Response(data interface{}) (err error) {
 	b, err := xml.Marshal(data)
 	if err != nil {
@@ -23,9 +33,7 @@ func (dr defaultResponse) Response(data interface{}) (err error) {
 			return
 		}
 	}
-
-	_, err = dr.w.Write(b)
-	return
+	return dr.Bytes(b)
 }
 
 func (dr defaultResponse) Text(content string) error {

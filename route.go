@@ -19,8 +19,6 @@ import (
 // type MenuViewEventHandler func(c Context, message MenuViewEventMessage) error
 // type MenuClickEventHandler func(c Context, message MenuClickEventMessage) error
 
-type Handler func(c Context) error
-
 type Route struct {
 	MsgType MsgType
 	Key     string

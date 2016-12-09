@@ -9,8 +9,6 @@ type Context interface {
 	SetHandler(h Handler)
 }
 
-type MessageHandler func(c Context) error
-
 type Request interface {
 	ToUserName() string
 	FromUserName() string
@@ -36,10 +34,19 @@ type Request interface {
 	Latitude() float32
 	Longitude() float32
 	Precision() float32
+
+	MenuId() int64
+	ScanCodeInfo() ScanCodeInfo
+	SendPicsInfo() SendPicsInfo
+	SendLocationInfo() SendLocationInfo
+
+	Status() string
 }
 
 type Response interface {
-	Response(data interface{}) (err error)
+	String(s string) error
+	Bytes(b []byte) error
+	Response(data interface{}) error
 	Text(content string) error
 	Image(mediaID string) error
 	Voice(mediaID string) error

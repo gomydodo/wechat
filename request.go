@@ -21,6 +21,14 @@ const (
 	locationEventValue    = "LOCATION"
 	clickEventValue       = "CLICK"
 	viewEventValue        = "VIEW"
+
+	scancodePushEventValue              = "scancode_push"
+	scancodeWaitmsgEventValue           = "scancode_waitmsg"
+	picSysphotoEventValue               = "pic_sysphoto"
+	picPhotoOrAlbumEventValue           = "pic_photo_or_album"
+	picWeixinEventValue                 = "pic_weixin"
+	locationSelectEventValue            = "location_select"
+	templateSendJobFinishEventTypeValue = "TEMPLATESENDJOBFINISH"
 )
 
 type MsgType int
@@ -35,6 +43,8 @@ const (
 	LocationType
 	LinkType
 
+	EventType
+
 	SubscribeEventType
 	UnsubscribeEventType
 	ScanEventType
@@ -42,6 +52,15 @@ const (
 	LocationEventType
 	MenuViewEventType
 	MenuClickEventType
+
+	ScancodePushEventType
+	ScancodeWaitmsgEventType
+	PicSysphotoEventType
+	PicPhotoOrAlbumEventType
+	PicWeixinEventType
+	LocationSelectEvenType
+
+	TemplateSendJobFinishEventType
 )
 
 type requestMessage struct {
@@ -69,6 +88,39 @@ type requestMessage struct {
 	Latitude     float32
 	Longitude    float32
 	Precision    float32
+
+	MenuId           int64
+	ScanCodeInfo     ScanCodeInfo
+	SendPicsInfo     SendPicsInfo
+	SendLocationInfo SendLocationInfo
+
+	Status string
+}
+
+type ScanCodeInfo struct {
+	ScanType   string
+	ScanResult string
+}
+
+type SendPicsInfo struct {
+	Count   int
+	PicList []PicListItem
+}
+
+type PicMd5Sum struct {
+	PicMd5Sum string
+}
+
+type PicListItem struct {
+	Item PicMd5Sum `xml:"item"`
+}
+
+type SendLocationInfo struct {
+	Location_X float64
+	Location_Y float64
+	Scale      float64
+	Label      string
+	Poiname    string
 }
 
 type defaultRequestMessage struct {
@@ -109,22 +161,37 @@ func (dft *defaultRequestMessage) MsgType() MsgType {
 	case linkValue:
 		return LinkType
 	case eventValue:
-		if evt := dft.Event(); evt == unsubscribeEventValue {
+
+		switch dft.Event() {
+		case unsubscribeEventValue:
 			return UnsubscribeEventType
-		} else if evt == subscribeEventValue {
+		case subscribeEventValue:
 			if strings.HasPrefix(dft.EventKey(), "qrscene_") {
 				return ScanSubscribeEventType
 			}
 			return SubscribeEventType
-		} else if evt == scanEventValue {
+		case scanEventValue:
 			return ScanEventType
-		} else if evt == locationEventValue {
+		case locationEventValue:
 			return LocationEventType
-		} else if evt == clickEventValue {
+		case clickEventValue:
 			return MenuClickEventType
-		} else if evt == viewEventValue {
-			return MenuViewEventType
+		case scancodePushEventValue:
+			return ScancodePushEventType
+		case scancodeWaitmsgEventValue:
+			return ScancodeWaitmsgEventType
+		case picSysphotoEventValue:
+			return PicSysphotoEventType
+		case picPhotoOrAlbumEventValue:
+			return PicPhotoOrAlbumEventType
+		case picWeixinEventValue:
+			return PicWeixinEventType
+		case locationSelectEventValue:
+			return LocationSelectEvenType
+		case templateSendJobFinishEventTypeValue:
+			return TemplateSendJobFinishEventType
 		}
+
 	}
 	return UnknownType
 }
@@ -207,6 +274,26 @@ func (dft *defaultRequestMessage) Longitude() float32 {
 
 func (dft *defaultRequestMessage) Precision() float32 {
 	return dft.rm.Precision
+}
+
+func (dft *defaultRequestMessage) MenuId() int64 {
+	return dft.rm.MenuId
+}
+
+func (dft *defaultRequestMessage) ScanCodeInfo() ScanCodeInfo {
+	return dft.rm.ScanCodeInfo
+}
+
+func (dft *defaultRequestMessage) SendPicsInfo() SendPicsInfo {
+	return dft.rm.SendPicsInfo
+}
+
+func (dft *defaultRequestMessage) SendLocationInfo() SendLocationInfo {
+	return dft.rm.SendLocationInfo
+}
+
+func (dft *defaultRequestMessage) Status() string {
+	return dft.rm.Status
 }
 
 type baseMessage interface {
@@ -304,6 +391,7 @@ type MenuViewEventMessage interface {
 	baseMessage
 	Event() string
 	EventKey() string
+	MenuId() int64
 }
 
 type MenuClickEventMessage interface {

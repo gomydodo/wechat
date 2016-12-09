@@ -1,6 +1,7 @@
 package wechat
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -150,7 +151,113 @@ const (
 <MsgType><![CDATA[event]]></MsgType>
 <Event><![CDATA[VIEW]]></Event>
 <EventKey><![CDATA[www.qq.com]]></EventKey>
+<MenuId>12312</MenuId>
 </xml>`
+
+	scancodePushEventMessage = `<xml><ToUserName><![CDATA[toUser]]></ToUserName>
+<FromUserName><![CDATA[oMgHVjngRipVsoxg6TuX3vz6glDg]]></FromUserName>
+<CreateTime>1408090502</CreateTime>
+<MsgType><![CDATA[event]]></MsgType>
+<Event><![CDATA[scancode_push]]></Event>
+<EventKey><![CDATA[6]]></EventKey>
+<ScanCodeInfo><ScanType><![CDATA[qrcode]]></ScanType>
+<ScanResult><![CDATA[1]]></ScanResult>
+</ScanCodeInfo>
+</xml>`
+
+	scancodeWaitmsgEventMessage = `<xml><ToUserName><![CDATA[toUser]]></ToUserName>
+<FromUserName><![CDATA[oMgHVjngRipVsoxg6TuX3vz6glDg]]></FromUserName>
+<CreateTime>1408090606</CreateTime>
+<MsgType><![CDATA[event]]></MsgType>
+<Event><![CDATA[scancode_waitmsg]]></Event>
+<EventKey><![CDATA[6]]></EventKey>
+<ScanCodeInfo><ScanType><![CDATA[qrcode]]></ScanType>
+<ScanResult><![CDATA[2]]></ScanResult>
+</ScanCodeInfo>
+</xml>`
+
+	picSysphotoEventMessage = `<xml><ToUserName><![CDATA[toUser]]></ToUserName>
+<FromUserName><![CDATA[oMgHVjngRipVsoxg6TuX3vz6glDg]]></FromUserName>
+<CreateTime>1408090651</CreateTime>
+<MsgType><![CDATA[event]]></MsgType>
+<Event><![CDATA[pic_sysphoto]]></Event>
+<EventKey><![CDATA[6]]></EventKey>
+<SendPicsInfo><Count>1</Count>
+<PicList><item><PicMd5Sum><![CDATA[1b5f7c23b5bf75682a53e7b6d163e185]]></PicMd5Sum>
+</item>
+</PicList>
+</SendPicsInfo>
+</xml>`
+
+	picPhotoOrAlbumEventMessage = `<xml><ToUserName><![CDATA[toUser]]></ToUserName>
+<FromUserName><![CDATA[oMgHVjngRipVsoxg6TuX3vz6glDg]]></FromUserName>
+<CreateTime>1408090816</CreateTime>
+<MsgType><![CDATA[event]]></MsgType>
+<Event><![CDATA[pic_photo_or_album]]></Event>
+<EventKey><![CDATA[6]]></EventKey>
+<SendPicsInfo><Count>1</Count>
+<PicList><item><PicMd5Sum><![CDATA[5a75aaca956d97be686719218f275c6b]]></PicMd5Sum>
+</item>
+</PicList>
+</SendPicsInfo>
+</xml>`
+
+	picWeixinEventMessage = `<xml><ToUserName><![CDATA[toUser]]></ToUserName>
+<FromUserName><![CDATA[oMgHVjngRipVsoxg6TuX3vz6glDg]]></FromUserName>
+<CreateTime>1408090816</CreateTime>
+<MsgType><![CDATA[event]]></MsgType>
+<Event><![CDATA[pic_weixin]]></Event>
+<EventKey><![CDATA[6]]></EventKey>
+<SendPicsInfo><Count>1</Count>
+<PicList><item><PicMd5Sum><![CDATA[5a75aaca956d97be686719218f275c6b]]></PicMd5Sum>
+</item>
+</PicList>
+</SendPicsInfo>
+</xml>`
+
+	locationSelectEventMessage = `<xml><ToUserName><![CDATA[toUser]]></ToUserName>
+<FromUserName><![CDATA[oMgHVjngRipVsoxg6TuX3vz6glDg]]></FromUserName>
+<CreateTime>1408091189</CreateTime>
+<MsgType><![CDATA[event]]></MsgType>
+<Event><![CDATA[location_select]]></Event>
+<EventKey><![CDATA[6]]></EventKey>
+<SendLocationInfo><Location_X><![CDATA[23]]></Location_X>
+<Location_Y><![CDATA[113]]></Location_Y>
+<Scale><![CDATA[15]]></Scale>
+<Label><![CDATA[xxff]]></Label>
+<Poiname><![CDATA[]]></Poiname>
+</SendLocationInfo>
+</xml>`
+
+	templateSendJobFinishEventSuccessMessage = `<xml>
+   <ToUserName><![CDATA[toUser]]></ToUserName>
+   <FromUserName><![CDATA[oia2TjuEGTNoeX76QEjQNrcURxG8]]></FromUserName>
+   <CreateTime>1395658920</CreateTime>
+   <MsgType><![CDATA[event]]></MsgType>
+   <Event><![CDATA[TEMPLATESENDJOBFINISH]]></Event>
+   <MsgID>200163836</MsgID>
+   <Status><![CDATA[success]]></Status>
+   </xml>`
+
+	templateSendJobFinishEventUserBlockMessage = `<xml>
+   <ToUserName><![CDATA[toUser]]></ToUserName>
+   <FromUserName><![CDATA[oia2TjuEGTNoeX76QEjQNrcURxG8]]></FromUserName>
+   <CreateTime>1395658984</CreateTime>
+   <MsgType><![CDATA[event]]></MsgType>
+   <Event><![CDATA[TEMPLATESENDJOBFINISH]]></Event>
+   <MsgID>200163840</MsgID>
+   <Status><![CDATA[failed:user block]]></Status>
+   </xml>`
+
+	templateSendJobFinishEventSystemFailedMessage = `<xml>
+   <ToUserName><![CDATA[toUser]]></ToUserName>
+   <FromUserName><![CDATA[oia2TjuEGTNoeX76QEjQNrcURxG8]]></FromUserName>
+   <CreateTime>1395658984</CreateTime>
+   <MsgType><![CDATA[event]]></MsgType>
+   <Event><![CDATA[TEMPLATESENDJOBFINISH]]></Event>
+   <MsgID>200163841</MsgID>
+   <Status><![CDATA[failed: system failed]]></Status>
+   </xml>`
 )
 
 func TestTextMessage(t *testing.T) {
@@ -171,6 +278,15 @@ func TestTextMessage(t *testing.T) {
 		locationEventMessage,
 		menuClickEventMessage,
 		menuViewEventMessage,
+		scancodePushEventMessage,
+		scancodeWaitmsgEventMessage,
+		picPhotoOrAlbumEventMessage,
+		picSysphotoEventMessage,
+		picWeixinEventMessage,
+		locationSelectEventMessage,
+		templateSendJobFinishEventSuccessMessage,
+		templateSendJobFinishEventSystemFailedMessage,
+		templateSendJobFinishEventUserBlockMessage,
 	}
 
 	for _, msg := range msgs {
@@ -187,6 +303,74 @@ func TestTextMessage(t *testing.T) {
 		if dft.MsgType() == ImageType {
 			if dft.PicUrl() != "this is a url" {
 				t.Fatal("image's picurl is not correct")
+			}
+		}
+
+		if dft.MsgType() == ScancodeWaitmsgEventType {
+			if dft.EventKey() != "6" ||
+				dft.ScanCodeInfo().ScanResult != "2" ||
+				dft.ScanCodeInfo().ScanType != "qrcode" {
+				t.Fatal("ScancodeWaitmsgEventType value is not correct")
+			}
+		}
+
+		if dft.MsgType() == ScancodePushEventType {
+			if dft.EventKey() != "6" ||
+				dft.ScanCodeInfo().ScanResult != "1" ||
+				dft.ScanCodeInfo().ScanType != "qrcode" {
+				t.Fatal("ScancodeWaitmsgEventType value is not correct")
+			}
+		}
+
+		if dft.MsgType() == PicSysphotoEventType {
+			if dft.EventKey() != "6" ||
+				dft.SendPicsInfo().Count != 1 ||
+				len(dft.SendPicsInfo().PicList) != 1 {
+				t.Fatal("PicSysphotoEventType value is not correct")
+			}
+
+			if dft.SendPicsInfo().PicList[0].Item.PicMd5Sum != "1b5f7c23b5bf75682a53e7b6d163e185" {
+				t.Fatal("PicSysphotoEventType piclist item is not correct")
+			}
+		}
+
+		if dft.MsgType() == PicPhotoOrAlbumEventType || dft.MsgType() == PicWeixinEventType {
+			if dft.EventKey() != "6" ||
+				dft.SendPicsInfo().Count != 1 ||
+				len(dft.SendPicsInfo().PicList) != 1 {
+				t.Fatal("PicPhotoOrAlbumEventType value is not correct")
+			}
+
+			if dft.SendPicsInfo().PicList[0].Item.PicMd5Sum != "5a75aaca956d97be686719218f275c6b" {
+				t.Fatal("PicPhotoOrAlbumEventType piclist item is not correct")
+			}
+		}
+
+		if dft.MsgType() == LocationSelectEvenType {
+			if dft.EventKey() != "6" {
+				t.Fatal("LocationSelectEvenType value is not correct")
+			}
+
+			if dft.SendLocationInfo().Location_X != 23 ||
+				dft.SendLocationInfo().Location_Y != 113 ||
+				dft.SendLocationInfo().Label != "xxff" ||
+				dft.SendLocationInfo().Scale != 15 ||
+				dft.SendLocationInfo().Poiname != "" {
+				t.Fatal("LocationSelectEvenType SendLocationInfo is not correct")
+			}
+		}
+
+		if dft.MsgType() == TemplateSendJobFinishEventType {
+			if dft.MsgId() == 200163836 && !strings.Contains(dft.Status(), "success") {
+				t.Fatal("TemplateSendJobFinishEventType success is not correct")
+			}
+
+			if dft.MsgId() == 200163840 && !strings.Contains(dft.Status(), "user") {
+				t.Fatal("TemplateSendJobFinishEventType user is not correct")
+			}
+
+			if dft.MsgId() == 200163841 && !strings.Contains(dft.Status(), "system") {
+				t.Fatal("TemplateSendJobFinishEventType system is not correct")
 			}
 		}
 	}
