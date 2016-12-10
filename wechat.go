@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"sort"
 	"strings"
@@ -14,37 +13,47 @@ import (
 )
 
 type (
+	WechatType int
+
 	Wechat struct {
 		Token          string
 		AppID          string
 		EncodingAesKey string
 		Secret         string
+		Type           WechatType
 
 		securityMode bool
 		encrypter    *wxencrypter.Encrypter
 		router       *Router
 
-		defaultHandler Handler
-
-		middleware []Middleware
-
-		lastError error
+		WechatErrorHandler WechatErrorHandler
+		defaultHandler     Handler
+		middleware         []Middleware
 	}
 
 	Middleware func(Handler) Handler
 
 	Handler func(Context) error
+
+	WechatErrorHandler func(error, Context) error
+)
+
+const (
+	_ WechatType = iota
+	SubscriptionsType
+	ServiceType
 )
 
 type ErrorHandler func(c Context, err error) error
 
-func New(token, appID, encodingAesKey, secret string) (w *Wechat, err error) {
+func New(token, appID, encodingAesKey, secret string, wechatType WechatType) (w *Wechat, err error) {
 
 	w = &Wechat{
 		Token:  token,
 		AppID:  appID,
 		Secret: secret,
 		router: NewRouter(),
+		Type:   wechatType,
 	}
 
 	err = w.SetEncodingAesKey(encodingAesKey)
@@ -121,31 +130,30 @@ func (w *Wechat) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		return
 
 	} else if r.Method == "POST" {
-		c, err := newContext(rw, r, w)
+		c := newContext(rw, r, w)
 
+		err := c.parse()
 		if err != nil {
-			rw.WriteHeader(501)
-			log.Println("wechat newContext error: ", err)
+			if h := w.WechatErrorHandler; h != nil {
+				h(err, c)
+			}
 			return
 		}
 
 		w.router.Find(c)
 
 		h := c.Handler()
-
+		if h == nil {
+			h = w.DefaultHandler()
+		}
 		for i := len(w.middleware) - 1; i >= 0; i-- {
 			h = w.middleware[i](h)
 		}
 
-		if h != nil {
-			err = h(c)
-		} else {
-			err = w.DefaultHandler()(c)
-		}
-
-		if err != nil {
-			log.Println("wechat handle error: ", err)
-			rw.WriteHeader(502)
+		if err := h(c); err != nil {
+			if h := w.WechatErrorHandler; h != nil {
+				h(err, c)
+			}
 			return
 		}
 	}

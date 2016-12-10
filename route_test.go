@@ -73,7 +73,8 @@ func TestRoute(t *testing.T) {
 	rw := httptest.NewRecorder()
 
 	handler := func(rw http.ResponseWriter, r *http.Request) {
-		c, err := newContext(rw, req, w)
+		c := newContext(rw, req, w)
+		err := c.parse()
 
 		if err != nil {
 			t.Fatal(err)

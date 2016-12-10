@@ -65,7 +65,7 @@ type context struct {
 	handler Handler
 }
 
-func newContext(w http.ResponseWriter, r *http.Request, wc *Wechat) (c *context, err error) {
+func newContext(w http.ResponseWriter, r *http.Request, wc *Wechat) (c *context) {
 	c = &context{
 		r:   r,
 		w:   w,
@@ -75,7 +75,11 @@ func newContext(w http.ResponseWriter, r *http.Request, wc *Wechat) (c *context,
 
 	c.dr = defaultResponse{c: c, w: w}
 
-	data, err := c.wc.body(r)
+	return
+}
+
+func (c *context) parse() (err error) {
+	data, err := c.wc.body(c.r)
 	if err != nil {
 		return
 	}
