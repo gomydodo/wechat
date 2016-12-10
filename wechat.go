@@ -101,7 +101,7 @@ func (w *Wechat) DefaultHandler() Handler {
 	}
 
 	return func(c Context) error {
-		return c.Response().String("success")
+		return c.Response().Success()
 	}
 }
 
