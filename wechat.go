@@ -64,6 +64,14 @@ func New(token, appID, encodingAesKey, secret string, wechatType WechatType) (w 
 	return
 }
 
+func NewService(token, appID, encodingAesKey, secret string) (w *Wechat, err error) {
+	return New(token, appID, encodingAesKey, secret, ServiceType)
+}
+
+func NewSubscription(token, appID, encodingAesKey, secret string) (w *Wechat, err error) {
+	return New(token, appID, encodingAesKey, secret, SubscriptionsType)
+}
+
 func (w *Wechat) SetEncodingAesKey(encodingAesKey string) (err error) {
 	if encodingAesKey == "" {
 		return
