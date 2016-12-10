@@ -44,6 +44,7 @@ type Request interface {
 }
 
 type Response interface {
+	Success() error
 	String(s string) error
 	Bytes(b []byte) error
 	Response(data interface{}) error

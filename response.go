@@ -16,6 +16,11 @@ func (dr defaultResponse) String(s string) (err error) {
 	return
 }
 
+func (dr defaultResponse) Success() (err error) {
+	err = dr.Bytes([]byte("success"))
+	return
+}
+
 func (dr defaultResponse) Bytes(b []byte) (err error) {
 	_, err = dr.w.Write(b)
 	return
