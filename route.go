@@ -2,7 +2,6 @@ package wechat
 
 import (
 	"fmt"
-	"sync"
 )
 
 // type TextHandler func(c Context, message TextMessage) error
@@ -27,7 +26,6 @@ type Route struct {
 
 type Router struct {
 	routes map[string]Route
-	mtx    sync.Mutex
 }
 
 func NewRouter() *Router {
@@ -43,9 +41,6 @@ func routeKey(msgType MsgType, key string) string {
 func (r *Router) Get(msgType MsgType, key string) Handler {
 	k := routeKey(msgType, key)
 
-	r.mtx.Lock()
-	defer r.mtx.Unlock()
-
 	route, ok := r.routes[k]
 	if !ok {
 		return nil
@@ -55,9 +50,6 @@ func (r *Router) Get(msgType MsgType, key string) Handler {
 }
 
 func (r *Router) Add(msgType MsgType, key string, route Route) {
-	r.mtx.Lock()
-	defer r.mtx.Unlock()
-
 	r.routes[routeKey(msgType, key)] = route
 }
 

@@ -29,3 +29,21 @@ func TestArticleResponseMessage(t *testing.T) {
 		t.Fatalf("count not equal to article's count, should be %d, actual is %d", news1.ArticleCount, len(news1.Articles))
 	}
 }
+
+func TestImageResponseMessage(t *testing.T) {
+	image := NewImageResponseMessage("to", "from", "mediaId")
+
+	b, err := xml.Marshal(image)
+	if err != nil {
+		t.Fatal("marshal error: ", err)
+	}
+
+	t.Log(string(b))
+
+	var image1 ImageResponseMessage
+	err = xml.Unmarshal(b, &image1)
+	if err != nil {
+		t.Fatal("unmarshal error:", err)
+	}
+
+}
