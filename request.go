@@ -59,7 +59,7 @@ const (
 	PicSysphotoEventType
 	PicPhotoOrAlbumEventType
 	PicWeixinEventType
-	LocationSelectEvenType
+	LocationSelectEventType
 
 	TemplateSendJobFinishEventType
 )
@@ -193,7 +193,7 @@ func (dft *defaultRequestMessage) EventType() EvtType {
 	case picWeixinEventValue:
 		return PicWeixinEventType
 	case locationSelectEventValue:
-		return LocationSelectEvenType
+		return LocationSelectEventType
 	case templateSendJobFinishEventTypeValue:
 		return TemplateSendJobFinishEventType
 	}

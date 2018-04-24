@@ -16,6 +16,23 @@ type Context interface {
 	IsLink() bool
 	IsEvent() bool
 
+	IsSubscribeEvent() bool
+	IsUnsubscribeEvent() bool
+	IsScanEvent() bool
+	IsScanSubscribeEvent() bool
+	IsLocationEvent() bool
+	IsMenuViewEvent() bool
+	IsMenuClickEvent() bool
+
+	IsScancodePushEvent() bool
+	IsScancodeWaitmsgEvent() bool
+	IsPicSysphotoEvent() bool
+	IsPicPhotoOrAlbumEvent() bool
+	IsPicWeixinEvent() bool
+	IsLocationSelectEven() bool
+
+	IsTemplateSendJobFinishEvent() bool
+
 	Response() Response
 
 	Success() error
@@ -147,6 +164,62 @@ func (c *context) IsLink() bool {
 
 func (c *context) IsEvent() bool {
 	return c.drm.MsgType() == EventType
+}
+
+func (c *context) IsSubscribeEvent() bool {
+	return c.drm.EventType() == SubscribeEventType || c.drm.EventType() == ScanSubscribeEventType
+}
+
+func (c *context) IsUnsubscribeEvent() bool {
+	return c.drm.EventType() == UnsubscribeEventType
+}
+
+func (c *context) IsScanEvent() bool {
+	return c.drm.EventType() == ScanEventType
+}
+
+func (c *context) IsScanSubscribeEvent() bool {
+	return c.drm.EventType() == ScanSubscribeEventType
+}
+
+func (c *context) IsLocationEvent() bool {
+	return c.drm.EventType() == LocationEventType
+}
+
+func (c *context) IsMenuViewEvent() bool {
+	return c.drm.EventType() == MenuViewEventType
+}
+
+func (c *context) IsMenuClickEvent() bool {
+	return c.drm.EventType() == MenuClickEventType
+}
+
+func (c *context) IsScancodePushEvent() bool {
+	return c.drm.EventType() == ScancodePushEventType
+}
+
+func (c *context) IsScancodeWaitmsgEvent() bool {
+	return c.drm.EventType() == ScancodeWaitmsgEventType
+}
+
+func (c *context) IsPicSysphotoEvent() bool {
+	return c.drm.EventType() == PicSysphotoEventType
+}
+
+func (c *context) IsPicPhotoOrAlbumEvent() bool {
+	return c.drm.EventType() == PicPhotoOrAlbumEventType
+}
+
+func (c *context) IsPicWeixinEvent() bool {
+	return c.drm.EventType() == PicWeixinEventType
+}
+
+func (c *context) IsLocationSelectEven() bool {
+	return c.drm.EventType() == LocationSelectEventType
+}
+
+func (c *context) IsTemplateSendJobFinishEvent() bool {
+	return c.drm.EventType() == TemplateSendJobFinishEventType
 }
 
 func (c *context) Response() Response {

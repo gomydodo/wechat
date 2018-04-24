@@ -346,7 +346,7 @@ func TestTextMessage(t *testing.T) {
 			}
 		}
 
-		if dft.MsgType() == EventType && dft.EventType() == LocationSelectEvenType {
+		if dft.MsgType() == EventType && dft.EventType() == LocationSelectEventType {
 			if dft.EventKey() != "6" {
 				t.Fatal("LocationSelectEvenType value is not correct")
 			}
