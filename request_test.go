@@ -306,7 +306,7 @@ func TestTextMessage(t *testing.T) {
 			}
 		}
 
-		if dft.MsgType() == ScancodeWaitmsgEventType {
+		if dft.MsgType() == EventType && dft.EventType() == ScancodeWaitmsgEventType {
 			if dft.EventKey() != "6" ||
 				dft.ScanCodeInfo().ScanResult != "2" ||
 				dft.ScanCodeInfo().ScanType != "qrcode" {
@@ -314,7 +314,7 @@ func TestTextMessage(t *testing.T) {
 			}
 		}
 
-		if dft.MsgType() == ScancodePushEventType {
+		if dft.MsgType() == EventType && dft.EventType() == ScancodePushEventType {
 			if dft.EventKey() != "6" ||
 				dft.ScanCodeInfo().ScanResult != "1" ||
 				dft.ScanCodeInfo().ScanType != "qrcode" {
@@ -322,7 +322,7 @@ func TestTextMessage(t *testing.T) {
 			}
 		}
 
-		if dft.MsgType() == PicSysphotoEventType {
+		if dft.MsgType() == EventType && dft.EventType() == PicSysphotoEventType {
 			if dft.EventKey() != "6" ||
 				dft.SendPicsInfo().Count != 1 ||
 				len(dft.SendPicsInfo().PicList) != 1 {
@@ -334,7 +334,7 @@ func TestTextMessage(t *testing.T) {
 			}
 		}
 
-		if dft.MsgType() == PicPhotoOrAlbumEventType || dft.MsgType() == PicWeixinEventType {
+		if dft.MsgType() == EventType && dft.EventType() == PicPhotoOrAlbumEventType || dft.MsgType() == EventType && dft.EventType() == PicWeixinEventType {
 			if dft.EventKey() != "6" ||
 				dft.SendPicsInfo().Count != 1 ||
 				len(dft.SendPicsInfo().PicList) != 1 {
@@ -346,7 +346,7 @@ func TestTextMessage(t *testing.T) {
 			}
 		}
 
-		if dft.MsgType() == LocationSelectEvenType {
+		if dft.MsgType() == EventType && dft.EventType() == LocationSelectEventType {
 			if dft.EventKey() != "6" {
 				t.Fatal("LocationSelectEvenType value is not correct")
 			}
@@ -360,7 +360,7 @@ func TestTextMessage(t *testing.T) {
 			}
 		}
 
-		if dft.MsgType() == TemplateSendJobFinishEventType {
+		if dft.MsgType() == EventType && dft.EventType() == TemplateSendJobFinishEventType {
 			if dft.MsgId() == 200163836 && !strings.Contains(dft.Status(), "success") {
 				t.Fatal("TemplateSendJobFinishEventType success is not correct")
 			}

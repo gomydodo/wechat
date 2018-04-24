@@ -26,7 +26,7 @@ func (dr defaultResponse) Bytes(b []byte) (err error) {
 	return
 }
 
-func (dr defaultResponse) Response(data interface{}) (err error) {
+func (dr defaultResponse) XML(data interface{}) (err error) {
 	b, err := xml.Marshal(data)
 	if err != nil {
 		return
@@ -42,7 +42,7 @@ func (dr defaultResponse) Response(data interface{}) (err error) {
 }
 
 func (dr defaultResponse) Text(content string) error {
-	return dr.Response(NewTextResponseMessage(
+	return dr.XML(NewTextResponseMessage(
 		dr.c.Request().FromUserName(),
 		dr.c.Request().ToUserName(),
 		content,
@@ -50,7 +50,7 @@ func (dr defaultResponse) Text(content string) error {
 }
 
 func (dr defaultResponse) Image(mediaId string) error {
-	return dr.Response(NewImageResponseMessage(
+	return dr.XML(NewImageResponseMessage(
 		dr.c.Request().FromUserName(),
 		dr.c.Request().ToUserName(),
 		mediaId,
@@ -58,7 +58,7 @@ func (dr defaultResponse) Image(mediaId string) error {
 }
 
 func (dr defaultResponse) Voice(mediaId string) error {
-	return dr.Response(NewVoiceResponseMessage(
+	return dr.XML(NewVoiceResponseMessage(
 		dr.c.Request().FromUserName(),
 		dr.c.Request().ToUserName(),
 		mediaId,
@@ -66,7 +66,7 @@ func (dr defaultResponse) Voice(mediaId string) error {
 }
 
 func (dr defaultResponse) Video(video Video) error {
-	return dr.Response(NewVideoResponseMessage(
+	return dr.XML(NewVideoResponseMessage(
 		dr.c.Request().FromUserName(),
 		dr.c.Request().ToUserName(),
 		video,
@@ -74,7 +74,7 @@ func (dr defaultResponse) Video(video Video) error {
 }
 
 func (dr defaultResponse) Music(music Music) error {
-	return dr.Response(NewMusicResponseMessage(
+	return dr.XML(NewMusicResponseMessage(
 		dr.c.Request().FromUserName(),
 		dr.c.Request().ToUserName(),
 		music,
@@ -91,7 +91,7 @@ func (dr defaultResponse) Article(articles ...ArticleItem) (err error) {
 		return
 	}
 
-	return dr.Response(article)
+	return dr.XML(article)
 }
 
 type CDATAString struct {
