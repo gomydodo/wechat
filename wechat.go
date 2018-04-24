@@ -34,10 +34,8 @@ type (
 
 	Handler func(Context) error
 
-	WechatErrorHandler func(error, Context) error
+	WechatErrorHandler func(error, Context)
 )
-
-type ErrorHandler func(c Context, err error) error
 
 func New(token, appID, encodingAesKey, secret string) (w *Wechat, err error) {
 
