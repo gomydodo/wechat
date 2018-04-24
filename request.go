@@ -32,6 +32,7 @@ const (
 )
 
 type MsgType int
+type EvtType int
 
 const (
 	UnknownType MsgType = iota
@@ -42,9 +43,9 @@ const (
 	ShortVideoType
 	LocationType
 	LinkType
-
 	EventType
 
+	UnknownEventType EvtType = 100 + iota
 	SubscribeEventType
 	UnsubscribeEventType
 	ScanEventType
@@ -161,39 +162,42 @@ func (dft *defaultRequestMessage) MsgType() MsgType {
 	case linkValue:
 		return LinkType
 	case eventValue:
-
-		switch dft.Event() {
-		case unsubscribeEventValue:
-			return UnsubscribeEventType
-		case subscribeEventValue:
-			if strings.HasPrefix(dft.EventKey(), "qrscene_") {
-				return ScanSubscribeEventType
-			}
-			return SubscribeEventType
-		case scanEventValue:
-			return ScanEventType
-		case locationEventValue:
-			return LocationEventType
-		case clickEventValue:
-			return MenuClickEventType
-		case scancodePushEventValue:
-			return ScancodePushEventType
-		case scancodeWaitmsgEventValue:
-			return ScancodeWaitmsgEventType
-		case picSysphotoEventValue:
-			return PicSysphotoEventType
-		case picPhotoOrAlbumEventValue:
-			return PicPhotoOrAlbumEventType
-		case picWeixinEventValue:
-			return PicWeixinEventType
-		case locationSelectEventValue:
-			return LocationSelectEvenType
-		case templateSendJobFinishEventTypeValue:
-			return TemplateSendJobFinishEventType
-		}
-
+		return EventType
 	}
 	return UnknownType
+}
+
+func (dft *defaultRequestMessage) EventType() EvtType {
+	switch dft.Event() {
+	case unsubscribeEventValue:
+		return UnsubscribeEventType
+	case subscribeEventValue:
+		if strings.HasPrefix(dft.EventKey(), "qrscene_") {
+			return ScanSubscribeEventType
+		}
+		return SubscribeEventType
+	case scanEventValue:
+		return ScanEventType
+	case locationEventValue:
+		return LocationEventType
+	case clickEventValue:
+		return MenuClickEventType
+	case scancodePushEventValue:
+		return ScancodePushEventType
+	case scancodeWaitmsgEventValue:
+		return ScancodeWaitmsgEventType
+	case picSysphotoEventValue:
+		return PicSysphotoEventType
+	case picPhotoOrAlbumEventValue:
+		return PicPhotoOrAlbumEventType
+	case picWeixinEventValue:
+		return PicWeixinEventType
+	case locationSelectEventValue:
+		return LocationSelectEvenType
+	case templateSendJobFinishEventTypeValue:
+		return TemplateSendJobFinishEventType
+	}
+	return UnknownEventType
 }
 
 func (dft *defaultRequestMessage) Content() string {
@@ -294,108 +298,4 @@ func (dft *defaultRequestMessage) SendLocationInfo() SendLocationInfo {
 
 func (dft *defaultRequestMessage) Status() string {
 	return dft.rm.Status
-}
-
-type baseMessage interface {
-	ToUserName() string
-	FromUserName() string
-	CreateTime() int
-	MsgType() MsgType
-}
-
-type TextMessage interface {
-	baseMessage
-	MsgId() int64
-	Content() string
-}
-
-type ImageMessage interface {
-	baseMessage
-	MsgId() int64
-	PicUrl() string
-	MediaId() string
-}
-
-type VoiceMessage interface {
-	baseMessage
-	MediaId() string
-	Recognition() string
-	Format() string
-	MsgId() int64
-}
-
-type VideoMessage interface {
-	baseMessage
-	MediaId() string
-	ThumbMediaId() string
-	MsgId() int64
-}
-
-type ShortVideoMessage interface {
-	baseMessage
-	MediaId() string
-	ThumbMediaId() string
-	MsgId() int64
-}
-
-type LocationMessage interface {
-	baseMessage
-	LocationX()
-	LocationY()
-	Scale() int
-	Label() string
-	MsgId() int64
-}
-
-type LinkMessage interface {
-	baseMessage
-	Title() string
-	Description() string
-	Url() string
-	MsgId() int64
-}
-
-type SubscribeEventMessage interface {
-	baseMessage
-	Event() string
-}
-
-type UnsubscribeEventMessage interface {
-	baseMessage
-	Event() string
-}
-
-type ScanSubscribeEventMessage interface {
-	baseMessage
-	Event() string
-	EventKey() string
-	Ticket() string
-}
-
-type ScanEventMessage interface {
-	baseMessage
-	Event() string
-	EventKey() string
-	Ticket() string
-}
-
-type LocationEventMessage interface {
-	baseMessage
-	Event() string
-	Latitude()
-	Longitude() float32
-	Precision() float32
-}
-
-type MenuViewEventMessage interface {
-	baseMessage
-	Event() string
-	EventKey() string
-	MenuId() int64
-}
-
-type MenuClickEventMessage interface {
-	baseMessage
-	Event() string
-	EventKey() string
 }

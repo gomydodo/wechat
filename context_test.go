@@ -19,7 +19,7 @@ var w *Wechat
 
 func init() {
 	var err error
-	w, err = New(token, appID, encodingAesKey, secret, SubscriptionsType)
+	w, err = New(token, appID, encodingAesKey, secret)
 	if err != nil {
 		log.Fatal("new wechat error :", err)
 	}
