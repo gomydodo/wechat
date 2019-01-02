@@ -1,9 +1,15 @@
 package wechat
 
-import "net/http"
+import (
+	ctx "context"
+	"net/http"
+)
 
 type Context interface {
 	Wechat() *Wechat
+
+	Set(key, val interface{})
+	Get(key interface{}) interface{}
 
 	Request() Request
 
@@ -101,6 +107,7 @@ type context struct {
 	w   http.ResponseWriter
 	wc  *Wechat
 	dr  defaultResponse
+	ctx ctx.Context
 }
 
 func newContext(w http.ResponseWriter, r *http.Request, wc *Wechat) (c *context) {
@@ -109,11 +116,20 @@ func newContext(w http.ResponseWriter, r *http.Request, wc *Wechat) (c *context)
 		w:   w,
 		wc:  wc,
 		drm: &defaultRequestMessage{},
+		ctx: ctx.Background(),
 	}
 
 	c.dr = defaultResponse{c: c, w: w}
 
 	return
+}
+
+func (c *context) Set(key, val interface{}) {
+	c.ctx = ctx.WithValue(c.ctx, key, val)
+}
+
+func (c *context) Get(key interface{}) interface{} {
+	return c.ctx.Value(key)
 }
 
 func (c *context) parse() (err error) {
